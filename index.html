@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Dieta 58">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Dieta 58</title>
+<style>
+:root{--bg:#f6f4ef;--card:#fff;--tx:#23302a;--mu:#6b7a72;--ac:#3f8f6b;--ac2:#e6f2ec;--bd:#e3e0d8;--wr:#c8742a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141a17;--card:#1e2723;--tx:#e8efe9;--mu:#93a39a;--ac:#5cc096;--ac2:#25382f;--bd:#2e3a34;--wr:#e0954f;color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:16px}
+main{max-width:520px;margin:0 auto;padding:16px 16px 96px}
+h1{font-size:22px;margin:4px 0 2px}h2{font-size:17px;margin:0 0 8px}
+.mu{color:var(--mu);font-size:14px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:14px;margin:12px 0}
+.meal{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--bd)}
+.meal:first-of-type{border-top:0}
+.meal input{width:24px;height:24px;accent-color:var(--ac);margin-top:2px;flex:none}
+.meal b{display:block}.meal span{font-size:14px;color:var(--mu)}
+.meal.done b{text-decoration:line-through;opacity:.55}
+.row{display:flex;gap:8px}
+input[type=number]{flex:1;min-width:0;padding:12px;font-size:18px;border:1px solid var(--bd);border-radius:12px;background:var(--bg);color:var(--tx)}
+button{padding:12px 16px;font-size:16px;font-weight:600;border:0;border-radius:12px;background:var(--ac);color:#fff}
+button.sm{padding:8px 12px;font-size:14px;background:var(--ac2);color:var(--ac)}
+.tip{background:var(--ac2);border-radius:12px;padding:12px;font-size:15px;line-height:1.4}
+.tip.w{background:rgba(200,116,42,.15)}
+.bar{height:12px;background:var(--ac2);border-radius:8px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ac);border-radius:8px}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--card);border-top:1px solid var(--bd);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav button{flex:1;background:none;color:var(--mu);border-radius:0;padding:12px 4px;font-size:13px}
+nav button.on{color:var(--ac)}
+nav button b{display:block;font-size:20px}
+.big{font-size:32px;font-weight:700}
+svg{width:100%;height:auto}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<nav id="nav"></nav>
+<script>
+const K='dieta58',GOAL=58,START=65;
+let S={w:{},s:{},e:{},h:{}},tab='dzis';
+try{Object.assign(S,JSON.parse(localStorage.getItem(K)||'{}'))}catch(e){}
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}};
+const iso=d=>d.toLocaleDateString('sv-SE'),today=iso(new Date()),dn=Math.floor(Date.now()/864e5);
+const B=[
+['Owsianka bezglutenowa','40 g płatków owsianych bezglutenowych, 200 ml napoju owsianego bez laktozy, 1 banan (100 g), 10 g orzechów',360],
+['Jajecznica z pieczywem','2 jajka (110 g) na łyżeczce oleju, 2 kromki chleba bezglutenowego (60 g), 100 g świeżego ogórka',360],
+['Omlet ze szpinakiem','2 jajka, 60 g szpinaku, 1 kromka chleba bezglutenowego (30 g), 150 g jagód',340]];
+const L=[
+['Kurczak z ryżem','120 g piersi z kurczaka, 70 g ryżu (przed ugotowaniem), 200 g brokułów gotowanych, 1 łyżka oliwy',520],
+['Kurczak z kaszą jaglaną','120 g piersi z kurczaka pieczonej, 70 g kaszy jaglanej (przed ugotowaniem), 200 g gotowanej marchewki, 1 łyżka oliwy',520],
+['Klopsiki z indyka z kaszą','120 g mielonego indyka (bez cebuli), 70 g kaszy gryczanej (przed ugotowaniem), 200 g duszonej cukinii',500],
+['Gulasz z indyka z ziemniakami','120 g indyka duszonego z papryką i marchewką (bez cebuli), 250 g ziemniaków, 1 łyżeczka oleju',500]];
+const D=[
+['Sałatka z kurczakiem','100 g gotowanego kurczaka, 100 g sałaty, 150 g pomidora, 100 g ogórka, 1 łyżka oliwy, 1 kromka chleba bezglutenowego',390],
+['Krem z marchewki','350 ml zupy-kremu z marchewki i ziemniaka na wywarze z marchwi i pietruszki (bez cebuli), 1 jajko na twardo, 30 g chleba bezglutenowego',380],
+['Indyk z batatem','120 g pieczonego fileta z indyka, 150 g pieczonego batata, 100 g sałaty, 1 łyżeczka oliwy',410]];
+const N=[
+['Jabłko z migdałami','1 jabłko (150 g) + 20 g migdałów',200],
+['Banan z masłem orzechowym','1 banan (120 g) + 15 g masła orzechowego (100% orzechów)',220],
+['Borówki z orzechami','150 g borówek + 20 g orzechów włoskich',190]];
+const slots=['Śniadanie','Obiad','Kolacja','Przekąska'];
+const menu=n=>[B[n%3],L[(n+1)%4],D[(n+2)%3],N[n%3]];
+const wts=()=>Object.keys(S.w).sort().map(d=>[d,S.w[d]]);
+const lastW=()=>{const a=wts();return a.length?a[a.length-1][1]:START};
+function advice(){
+  const a=wts(),out={goal:8000,msgs:[]};
+  if(!S.w[today])out.msgs.push(['','Wpisz dzisiejszą wagę (rano, po toalecie, przed jedzeniem), żebym mógł śledzić postępy.']);
+  if(a.length<2){out.msgs.push(['','Za mało pomiarów, żeby ocenić trend. Trzymaj się planu i ważysz się codziennie.']);return out}
+  const [ld,lw]=a[a.length-1];
+  const old=a.find(x=>(new Date(ld)-new Date(x[0]))/864e5<=14);
+  const days=(new Date(ld)-new Date(old[0]))/864e5;
+  if(days<7){out.msgs.push(['','Po tygodniu pomiarów ocenię tempo. Na razie trzymaj się planu.']);return out}
+  const rate=(old[1]-lw)/days*7;
+  if(rate<0.2){out.goal=10000;out.msgs.push(['w','Waga stoi w miejscu ('+rate.toFixed(2)+' kg/tydz.). Dodaj codziennie 30-minutowy spacer, najlepiej po obiedzie lub kolacji, i podnieś cel kroków do 10 000. Sprawdź też porcje, ważąc jedzenie. Nie obniżaj kalorii poniżej 1400.'])}
+  else if(rate>1){out.msgs.push(['w','Chudniesz za szybko ('+rate.toFixed(2)+' kg/tydz.). Zjedz wszystkie posiłki i dodaj drugą przekąskę (np. banan z masłem orzechowym). Zdrowe tempo to 0,3–0,7 kg tygodniowo.'])}
+  else out.msgs.push(['','Świetnie, tempo '+rate.toFixed(2)+' kg tygodniowo to zdrowa norma. Tak trzymaj!']);
+  return out;
+}
+function render(){
+  const A=document.getElementById('app'),adv=advice();let h='';
+  if(tab==='dzis'){
+    const m=menu(dn),e=S.e[today]||[0,0,0,0],kc=m.reduce((s,x,i)=>s+(e[i]?x[2]:0),0),tot=m.reduce((s,x)=>s+x[2],0);
+    h+=`<h1>Dzisiaj</h1><div class="mu">${new Date().toLocaleDateString('pl-PL',{weekday:'long',day:'numeric',month:'long'})} · plan ok. ${tot} kcal</div>`;
+    h+=adv.msgs.map(x=>`<div class="tip ${x[0]}" style="margin-top:12px">${x[1]}</div>`).join('');
+    h+=`<div class="card"><h2>Co jeść</h2>`+m.map((x,i)=>`<label class="meal ${e[i]?'done':''}"><input type="checkbox" ${e[i]?'checked':''} onchange="tg(${i})"><div><span>${slots[i]}</span><b>${x[0]}</b><span>${x[1]} · ${x[2]} kcal</span></div></label>`).join('')+`<div class="mu" style="margin-top:8px">Zjedzone: ${kc} / ${tot} kcal</div></div>`;
+    const wt=S.h[today]||0;
+    h+=`<div class="card"><h2>Woda: ${wt*0.25} l / 2 l</h2><div class="row"><button class="sm" onclick="wd(-1)">− szklanka</button><button class="sm" onclick="wd(1)">+ szklanka</button></div><div class="mu" style="margin-top:8px">Pij wodę, słabą herbatę ziołową (np. mięta, rumianek). Unikaj kiszonek, kefiru i kombuchy.</div></div>`;
+  }
+  if(tab==='waga'){
+    const lw=lastW(),pr=Math.max(0,Math.min(100,(START-lw)/(START-GOAL)*100));
+    h+=`<h1>Postępy</h1><div class="card"><div class="mu">Aktualna waga</div><div class="big">${lw.toFixed(1)} kg</div><div class="bar" style="margin:10px 0"><i style="width:${pr}%"></i></div><div class="mu">Start ${START} kg · cel ${GOAL} kg · zostało ${Math.max(0,lw-GOAL).toFixed(1)} kg (ok. ${Math.ceil(Math.max(0,lw-GOAL)/0.5)} tyg.)</div></div>`;
+    h+=adv.msgs.map(x=>`<div class="tip ${x[0]}">${x[1]}</div>`).join('');
+    h+=`<div class="card"><h2>Waga dzisiaj</h2><div class="row"><input id="wi" type="number" step="0.1" inputmode="decimal" placeholder="np. 64.5" value="${S.w[today]||''}"><button onclick="sw()">Zapisz</button></div></div>`;
+    h+=`<div class="card"><h2>Wykres</h2>${chart()}</div>`;
+  }
+  if(tab==='kroki'){
+    const st=S.s[today]||0,g=adv.goal;
+    h+=`<h1>Kroki</h1><div class="card"><div class="mu">Dzisiaj</div><div class="big">${st.toLocaleString('pl-PL')} / ${g.toLocaleString('pl-PL')}</div><div class="bar" style="margin:10px 0"><i style="width:${Math.min(100,st/g*100)}%"></i></div></div>`;
+    h+=`<div class="card"><h2>Wpisz kroki</h2><div class="mu" style="margin-bottom:8px">Odczytaj z aplikacji Zdrowie na iPhonie.</div><div class="row"><input id="si" type="number" inputmode="numeric" placeholder="np. 7500"><button onclick="ss()">Zapisz</button></div></div>`;
+    h+=`<div class="tip ${st>=g?'':'w'}">${st>=g?'Cel kroków osiągnięty. Brawo!':'Brakuje '+(g-st)+' kroków, to ok. '+Math.ceil((g-st)/100)+' minut spaceru. Wyjdź na szybki spacer!'}</div>`;
+    h+=adv.msgs.filter(x=>x[0]).map(x=>`<div class="tip w" style="margin-top:12px">${x[1]}</div>`).join('');
+  }
+  if(tab==='plan'){
+    h+=`<h1>Zasady</h1><div class="card"><h2>Twoje wyliczenia</h2><div>Zapotrzebowanie ok. 1900 kcal. Deficyt ok. 400 kcal daje plan <b>ok. 1500 kcal</b> i spadek ok. 0,4–0,5 kg tygodniowo. Cel 58 kg (BMI ok. 22,7) to zdrowa waga.</div></div>`;
+    h+=`<div class="card"><h2>Bez glutenu i laktozy</h2><div>Wybieraj produkty z oznaczeniem „bezglutenowy” (przekreślony kłos), a owies tylko certyfikowany. Zamiast mleka: napój ryżowy, owsiany lub bezlaktozowy. Czytaj składy.</div></div>`;
+    h+=`<div class="card"><h2>Unikaj</h2><div>Kiszonek (kapusta, ogórki, kimchi), kefiru, jogurtu, kombuchy, zakwasu. Gdyby bóle jelit wracały, prowadź notatki co jadłaś i skonsultuj się z lekarzem lub dietetykiem.</div></div>`;
+    h+=`<div class="card"><h2>Menu na kolejne dni</h2>`+[0,1,2,3,4,5,6].map(i=>{const d=new Date(Date.now()+i*864e5);return `<div style="padding:8px 0;border-top:1px solid var(--bd)"><b>${d.toLocaleDateString('pl-PL',{weekday:'long',day:'numeric',month:'numeric'})}</b><div class="mu">${menu(dn+i).map(x=>x[0]).join(' · ')}</div></div>`}).join('')+`</div>`;
+    h+=`<div class="mu">To nie jest porada medyczna. Przy chorobach przewlekłych skonsultuj plan z lekarzem.</div>`;
+  }
+  A.innerHTML=h;
+  document.getElementById('nav').innerHTML=[['dzis','🍽️','Dziś'],['waga','⚖️','Waga'],['kroki','👟','Kroki'],['plan','📋','Plan']].map(t=>`<button class="${tab===t[0]?'on':''}" onclick="go('${t[0]}')"><b>${t[1]}</b>${t[2]}</button>`).join('');
+}
+function chart(){
+  const a=wts();if(a.length<2)return '<div class="mu">Wykres pojawi się po dwóch pomiarach.</div>';
+  const W=320,H=160,p=24,v=a.map(x=>x[1]),mn=Math.min(GOAL,...v)-1,mx=Math.max(...v)+1;
+  const X=i=>p+i*(W-2*p)/(a.length-1),Y=y=>H-p-(y-mn)/(mx-mn)*(H-2*p);
+  return `<svg viewBox="0 0 ${W} ${H}"><line x1="${p}" x2="${W-p}" y1="${Y(GOAL)}" y2="${Y(GOAL)}" stroke="var(--wr)" stroke-dasharray="4"/><text x="${p}" y="${Y(GOAL)-4}" font-size="10" fill="var(--wr)">cel ${GOAL}</text><polyline fill="none" stroke="var(--ac)" stroke-width="2.5" points="${a.map((x,i)=>X(i)+','+Y(x[1])).join(' ')}"/>${a.map((x,i)=>`<circle cx="${X(i)}" cy="${Y(x[1])}" r="3" fill="var(--ac)"/>`).join('')}<text x="${p}" y="${H-6}" font-size="10" fill="var(--mu)">${a[0][1]} kg</text><text x="${W-p}" y="${H-6}" font-size="10" text-anchor="end" fill="var(--mu)">${a[a.length-1][1]} kg</text></svg>`;
+}
+const go=t=>{tab=t;render()};
+const tg=i=>{const e=S.e[today]||[0,0,0,0];e[i]=e[i]?0:1;S.e[today]=e;save();render()};
+const wd=n=>{S.h[today]=Math.max(0,(S.h[today]||0)+n);save();render()};
+const sw=()=>{const v=parseFloat(document.getElementById('wi').value.replace(',','.'));if(v>30&&v<200){S.w[today]=v;save();render()}};
+const ss=()=>{const v=parseInt(document.getElementById('si').value);if(v>=0){S.s[today]=v;save();render()}};
+render();
+</script>
+</body>
+</html>
